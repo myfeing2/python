@@ -1,0 +1,9 @@
+{
+    "files": [
+        "widget.py",
+        "form.ui",
+        "convert2cue.py",
+        "internetarchive2cue.qrc",
+        "translations/internetarchive2cue_zh_CN.ts"
+    ]
+}

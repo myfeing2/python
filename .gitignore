@@ -11,6 +11,9 @@ matcha-icefall-zh-en
 *.pdf
 *.txt
 *.csv
+*.epub
+*.bat
+*.ps*
 *.ipynb
 *.*~
 *.cue

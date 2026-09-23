@@ -36,8 +36,9 @@ os.environ["QT_RHI_BACKEND"] = "opengl"
 os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
 os.environ['MESA_LOADER_DRIVER_OVERRIDE'] = 'llvmpipe'
 os.environ['QT_QPA_PLATFORM'] = 'wayland'
+os.environ['QT_OPENGL'] = 'software'
+#os.environ["QT3D_RENDERER"] = "opengl"
 #os.environ['QT_DEBUG_PLUGINS'] = "1"
-#os.environ['QT_OPENGL'] = 'software'
 
 basedir = os.path.dirname(__file__)
 windows = []
@@ -57,7 +58,10 @@ class MainWindow(QMainWindow):
         self.thread.started.connect(self.ttstask.run)  # 线程启动时执行任务
 
         self.setWindowTitle(self.epub.title)
-
+        
+        with open(os.path.join(basedir, "find_textnode.js"), "r", encoding="utf-8") as f:
+            self.js_walkercode = f.read()
+        
         self.toc_tree = QTreeWidget()
         self.toc_tree.itemClicked.connect(self.on_item_clicked)
         toc_root = self.toc_tree.invisibleRootItem()
@@ -75,14 +79,14 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Horizontal)
         splitter.addWidget(self.toc_tree)
         splitter.addWidget(self.active_chapter['view'])
-        splitter.setSizes([250, 600])
+        splitter.setSizes([200, 400])
         splitter.setCollapsible(0, False)
 
         self.tabs = QTabWidget()
         self.tabs.setTabPosition(QTabWidget.North)
         self.tabs.setMovable(True)
         self.tabs.setTabsClosable(True)
-        self.tabs.setMinimumSize(QSize(800, 600))
+        self.tabs.setMinimumSize(QSize(600, 200))
         self.tabs.addTab(splitter, self.active_chapter['name'])
         self.setCentralWidget(self.tabs)
 
@@ -119,7 +123,7 @@ class MainWindow(QMainWindow):
 
         self.play_action = QAction(
             QIcon(os.path.join(basedir, "res/play.png")),
-            "open",
+            "play",
             self,
         )
         self.play_action.triggered.connect(self.onPlayButtonClick)
@@ -150,8 +154,6 @@ class MainWindow(QMainWindow):
             print("href: " + self.active_chapter['href'])
             if self.active_chapter['href']:
                 self.scroll_to_text(self.active_chapter['href'])
-                self.active_chapter['view'].page().runJavaScript("window.currEle=null;window.currRange=null;")
-                #self.active_chapter['view'].page().runJavaScript("console.log(window.myGlobalVar);")
         else:
             print("loading page failure.")
 
@@ -171,9 +173,7 @@ class MainWindow(QMainWindow):
                 }}
             );
             const node = walker.nextNode();
-            console.log(node)
             if (node) {{
-                //node.parentElement.scrollIntoView({{behavior: 'auto', block: 'start'}});
                 node.scrollIntoView({{behavior: 'auto', block: 'start'}});
             }}
         }})();
@@ -182,7 +182,8 @@ class MainWindow(QMainWindow):
 
     def on_item_clicked(self, item, column):
         if self.epub.toc != []:
-            self.active_chapter['name'], self.active_chapter['doc'], self.active_chapter['href'] = self.epub.search_chapter(item.data(0, Qt.UserRole), self.epub.toc)
+            self.active_chapter['name'], self.active_chapter['doc'], self.active_chapter['href'] = \
+                 self.epub.search_chapter(item.data(0, Qt.UserRole), self.epub.toc)
             html = self.epub.load_document(self.active_chapter['doc'])
             self.active_chapter['view'].setHtml(html)
             self.tabs.setTabText(self.tabs.currentIndex(), self.active_chapter['name'])
@@ -199,52 +200,15 @@ class MainWindow(QMainWindow):
                 self.set_tree_items(item, last_tree_item)
 
     def send_next_text(self):
-        if self.tts_counter < 2:
-            self.tts_counter += 1
-            #self.ttstask.new_text_arrival("希望能够在未来的artificial intelligence领域有所建树。")
+        js = self.js_walkercode + "\nretrieveNextSentence();"
+        self.active_chapter['view'].page().runJavaScript(js, self.retrieve_sentence)
+
+    def retrieve_sentence(self, sentence):
+        if sentence != "":
+            self.ttstask.new_text_arrival(sentence)
         else:
+            #if no text, load next document, else stop
             self.ttstask.stop()
-
-    def find_textnode_in_viewport(self):
-        js = """
-            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-            elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, dt, dd, blockquote, td, th, span, div')
-            for (const el of elements) {
-                const rect = el.getBoundingClientRect();
-                const style = window.getComputedStyle(el);
-
-                // 过滤不可见元素：尺寸为0、display:none、visibility:hidden
-                if (!Array.from(el.childNodes).some(node => node.nodeType === 3)) continue;
-
-                const text = Array.from(el.childNodes).filter(node => node.nodeType === 3);
-                if (!text) continue;
-                if (el.offsetParent === null) continue; 
-                if (rect.width === 0 || rect.height === 0) continue;
-                if (style.display === 'none' || style.visibility === 'hidden') continue;
-
-                // 判断是否在视口内（任意部分可见就算）
-                const isInViewport = (
-                    rect.top < viewportHeight && rect.bottom > 0 &&
-                    rect.left < viewportWidth && rect.right > 0
-                );
-
-                if (isInViewport) {
-                    //console.log(el.textContent);
-                    window.currEle = el;
-                    return true;
-                } else
-                    window.currEle = null
-                    return false;
-            }
-        """
-        self.active_chapter['view'].page().runJavaScript(js, self.after_find_textnode)
-
-    def after_find_textnode(self, ok):
-        if ok:
-            pass
-        else:
-            pass
 
     def ttstask_stop(self):
         self.playing = False
@@ -261,8 +225,9 @@ class MainWindow(QMainWindow):
     def onPlayButtonClick(self, is_checked):
         if not self.playing:
             self.playing = True
-            #self.ttstask.new_text_arrival("让机器能够用自然流畅的语音与人类进行交流")
             self.thread.start()
+            js_code = self.js_walkercode + "\ncreateNodesWalker();\nretrieveFirstSentence();"
+            self.active_chapter['view'].page().runJavaScript(js_code, self.retrieve_sentence)
         else:
             self.ttstask.play()
 

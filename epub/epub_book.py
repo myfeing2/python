@@ -13,8 +13,8 @@ class EpubBook:
         self.title = self.book.get_metadata('DC', 'title')[0][0]
         self.toc = self.load_toc()
 
-    def load_first_doc() -> str:
-        return load_document(self.first_doc)
+    def load_first_doc(self) -> str:
+        return self.load_document(self.first_doc)
     
     def load_document(self, doc: str) -> str:
         item = self.book.get_item_with_href(doc)
@@ -67,7 +67,7 @@ class EpubBook:
             elif child.name == 'a':
                 id['id'] += 1
                 if child['href'].find('#') != -1:
-                    file, ref = href.split('#')
+                    file, ref = child['href'].split('#')
                 else:
                     file = child['href']
                     ref = None

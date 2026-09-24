@@ -30,6 +30,7 @@ function createNodesWalker() {
     window.walker = document.createTreeWalker(document.body, 
                                             NodeFilter.SHOW_ELEMENT,
                                             filter, false);
+    window.currNode = window.walker.firstChild();
 }
 
 function findTextNode(isFirstNode) {
@@ -95,55 +96,67 @@ function findTextNode(isFirstNode) {
             }
         }
         if (window.sentenceNodes != null) {
+            let ind = window.currSentenceIndex;
+            do {
+                let top = rect.top + 
+                    window.sentenceHeightOffsets[ind] * rect.height;
+                /*console.log("ind, curr_index, node.len: ", 
+                    ind, window.currSentenceIndex, 
+                    window.sentenceNodes.length);
+                console.log("rect.top, rect.height, sent_offset:",
+                    rect.top, rect.height,
+                    window.sentenceHeightOffsets[ind]);
+                console.log(window.sentences[ind]);*/
+                if (top >= 0) break;
+                ind ++;
+            } while (ind < window.sentenceNodes.length);
+            if (ind < window.sentenceNodes.length)
+                window.currSentenceIndex = ind;
             selectCurrentSentence();
-            return window.sentences[window.currSentenceIndex];
+            const return_val = {href:window.currNode.id, 
+                sentence:window.sentences[window.currSentenceIndex]};
+            return JSON.stringify(return_val);
         }
         window.currNode = window.walker.nextSibling();
     }
-    return ""; 
+    return JSON.stringify({href:"",sentence:""}); 
 }
 
 function selectCurrentSentence() {
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
     const rect = window.sentenceNodes[window.currSentenceIndex].nodeType === 3 ?
-        window.currNode.getBoundingClientRect():
-        window.sentenceNodes[window.currSentenceIndex].getBoundingClientRect(); 
-    const isInViewport = (
-        rect.top < viewportHeight && rect.bottom > 0 &&
-        rect.left < viewportWidth && rect.right > 0
-    );
-   if (!isInViewport) {
-        window.sentenceNodes[window.currSentenceIndex].scrollIntoView({behavior: 'smooth', block: 'start'});
-    } else {
-        offset = window.sentenceHeightOffsets[window.currSentenceIndex] * 
-            rect.height;
-        sent_top = rect.top + offset
-        if (sent_top  > viewportHeight * 0.9) {
-            window.scrollBy(0, sent_top * 0.9);
-        }
-    }
-    range = document.createRange();
+        window.currNode.getBoundingClientRect() :
+        window.sentenceNodes[window.currSentenceIndex].getBoundingClientRect();
+    const sent_top = rect.top + 
+        window.sentenceHeightOffsets[window.currSentenceIndex] * rect.height;
+    if (sent_top > viewportHeight * 0.9)
+        window.scrollBy(0, sent_top * 0.9);
+    else if (sent_top < 0)
+        window.scrollBy(0, sent_top);
+    const range = document.createRange();
     range.setStart(window.sentenceNodes[window.currSentenceIndex], 
         window.sentenceStarts[window.currSentenceIndex]);
     range.setEnd(window.sentenceNodes[window.currSentenceIndex], 
         window.sentenceStarts[window.currSentenceIndex] + 
         window.sentenceCounts[window.currSentenceIndex]);
-    selection = window.getSelection();
+    const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
 }
 
 function retrieveFirstSentence() {
-    window.currNode = window.walker.firstChild();
+    createNodesWalker();
     return findTextNode(true);
 }
 
 function retrieveNextSentence() {
     window.currSentenceIndex++;
-    if (window.currSentenceIndex < window.sentences.length) {
+    if (window.currSentenceIndex < window.sentenceNodes.length) {
         selectCurrentSentence();
-        return window.sentences[window.currSentenceIndex];
+        const return_val = {href:"",
+            sentence:window.sentences[window.currSentenceIndex]
+        }
+        return JSON.stringify(return_val);
     } else {
         window.currNode = window.walker.nextSibling();
         return findTextNode(false);

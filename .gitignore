@@ -3,7 +3,6 @@ __pycache__
 env
 imgs
 imgs-out
-samples
 pyside6-source
 matcha-icefall-zh-en
 !requirements.txt

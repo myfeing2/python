@@ -40,7 +40,7 @@ class TtsTask(QObject):
         self.stream = None
 
     def play(self):
-        if self.is_generated:
+        if self.is_generated and self.stream:
             self.stream.start() # 继续播放
         
     def stop(self):
@@ -50,12 +50,12 @@ class TtsTask(QObject):
         self.finished.emit()
 
     def pause(self):
-        if self._pause == False:
-            if self.stream is not None and self.stream.active:
+        if not self._pause:
+            if self.stream and self.stream.active:
                 self._pause = True
                 self.stream.stop() # 暂停播放
         else:
-            if self.stream is not None and not self.stream.active:
+            if self.stream and not self.stream.active:
                 self._pause = False
                 self.stream.start() # 继续播放
 

@@ -200,6 +200,16 @@ class MainWindow(QMainWindow):
         self.cover_action.setEnabled(True)
         toolbar.addAction(self.cover_action)
 
+        self.dev_view_action = QAction(
+            QIcon(os.path.join(basedir, "res/dev_view.png")),
+            "dev_view",
+            self,
+        )
+        self.dev_view_action.triggered.connect(self.onDevViewButtonClick)
+        self.dev_view_action.setEnabled(True)
+        toolbar.addAction(self.dev_view_action)
+
+
     def closeEvent(self, event):
         #print("closing window...")
         if self.playing:
@@ -408,6 +418,13 @@ class MainWindow(QMainWindow):
         path = os.path.join(self.epub.book_path, self.active_chapter['doc'])
         #print(f"onCoverButtonClick: {path}")
         self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(path))
+
+    def onDevViewButtonClick(self):
+        if self.dev_view.isVisible():
+            self.dev_view.hide()
+        else:
+            self.dev_view.show()
+            self.doc_splitter.setSizes([3, 2])  # 调整分割器大小，使 DevTools 可见
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

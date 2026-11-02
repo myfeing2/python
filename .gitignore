@@ -1,13 +1,12 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 __pycache__
+!requirements.txt
+!tts_matcha.json
 env
 imgs
 imgs-out
 pyside6-source
 matcha-icefall-zh-en
-!requirements.txt
-!tts_matcha.json
+
 *.onnx
 *.pdf
 *.txt
@@ -321,5 +320,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
->>>>>>> 123a084fa735bdc1764dd6839d8851c7ebf86094
->>>>>>> 8ab1643e980ddcf1acddf86f8f7e0f275ba6a2d6

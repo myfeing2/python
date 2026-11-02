@@ -240,9 +240,9 @@ function scrollToSentence() {
     const sent_top = rect.top + 
         window.sentenceHeightOffsets[window.currSentenceIndex] * rect.height;
     if (sent_top > viewportHeight * 0.9)
-        window.scrollBy(0, sent_top * 0.9);
+        window.scrollBy({ top: sent_top * 0.9, left: 0, behavior: 'smooth' });
     else if (sent_top < 0) 
-        window.scrollBy(0, sent_top);
+        window.scrollBy({ top: sent_top, left: 0, behavior: 'smooth' });
     //console.log("sent_top: ", sent_top);
 }
 

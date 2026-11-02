@@ -7,6 +7,7 @@ imgs-out
 pyside6-source
 matcha-icefall-zh-en
 !requirements.txt
+!tts_matcha.json
 *.onnx
 *.pdf
 *.txt

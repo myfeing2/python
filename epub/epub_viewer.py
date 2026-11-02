@@ -337,8 +337,8 @@ class MainWindow(QMainWindow):
 
     def retrieve_sentence(self, value):
         value = json.loads(value)
-        #print("retrieved sentence: ", value)
-        if value["sentence"]:
+        print("retrieved sentence: ", value)
+        if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
             return
         else:
@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
             item = self.toc_tree.currentItem()
             #print(f"current_item: {item.text(0) if item else 'None'}")
             next_item = self.toc_tree.itemBelow(item)
-            #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
+            print(f"next_item: {next_item.text(0) if next_item else 'None'}")
             if next_item:
                 self.toc_tree.setCurrentItem(next_item)
                 self.active_chapter['doc'], \
@@ -365,7 +365,7 @@ class MainWindow(QMainWindow):
             self.first_entry = False
         value = json.loads(first_sentence)
         #print("start playing sentence: ", value)
-        if value["sentence"]:
+        if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
 
     @Slot()

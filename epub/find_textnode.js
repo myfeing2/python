@@ -1,8 +1,8 @@
 function initEventListeners() {
     document.addEventListener('mouseup', function (event) {
         selection = window.getSelection();
-        selRange = selection.getRangeAt(0);
         if (selection.rangeCount > 0) {
+            const selRange = selection.getRangeAt(0);
             const startnode = selection.getRangeAt(0).startContainer;
             createNodesWalker();
             window.currNode = window.walker.firstChild();
@@ -177,16 +177,16 @@ function findTextNode(isFirstEntry) {
             selectSentence();
             const return_val = {href:window.currNode.id, 
                 sentence:window.sentences[window.currSentenceIndex]};
-            return JSON.stringify(return_val);
+            return return_val;
         }
         window.currNode = window.walker.nextSibling();
     }
-    return JSON.stringify({href:"",sentence:""}); 
+    return null; 
 }
 
 function compareRange(range) {
     const nodeRange = document.createRange();
-    console.log("compareRange: ", range.toString());
+    //console.log("compareRange: ", range.toString());
     let i = 0;
     while (i < window.sentenceNodes.length) {
         nodeRange.setStart(window.sentenceNodes[i], window.sentenceStarts[i]);
@@ -194,7 +194,7 @@ function compareRange(range) {
             window.sentenceStarts[i] + window.sentenceCounts[i]);
         result = range.compareBoundaryPoints(Range.END_TO_START, nodeRange);
         if (result < 0) {
-            console.log("Found sentence: ", window.sentences[i]);
+            //console.log("Found sentence: ", window.sentences[i]);
             window.currSentenceIndex = i;
             const selection = window.getSelection();
             selection.removeAllRanges();
@@ -233,6 +233,7 @@ function isInViewport() {
 }
 
 function scrollToSentence() {
+    //console.log("scrollToSentence: ", window.sentenceNodes[window.currSentenceIndex]);
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
     const rect = window.sentenceNodes[window.currSentenceIndex].nodeType === 3 ?
         window.currNode.getBoundingClientRect() :
@@ -249,13 +250,14 @@ function scrollToSentence() {
 function retrieveFirstSentence() {
     createNodesWalker();
     window.currNode = window.walker.firstChild();
-    return findTextNode(true);
+    const result = findTextNode(true);
+    return JSON.stringify(result);
 }
 
 function retrieveNextSentence() {
-    isNeedScroll = isInViewport();
     window.currSentenceIndex++;
     if (window.currSentenceIndex < window.sentenceNodes.length) {
+        isNeedScroll = isInViewport();
         selectSentence();
         if (isNeedScroll) scrollToSentence();
         const return_val = {href:"",
@@ -264,9 +266,12 @@ function retrieveNextSentence() {
         return JSON.stringify(return_val);
     } else {
         window.currNode = window.walker.nextSibling();
-        next_sentence = findTextNode(false);
-        if (isNeedScroll) scrollToSentence();
-        return next_sentence;
+        const next_sentence = findTextNode(false);
+        if (next_sentence != null) {
+            isNeedScroll = isInViewport();
+            if (isNeedScroll) scrollToSentence();
+        }
+        return JSON.stringify(next_sentence);
     }
 }
 

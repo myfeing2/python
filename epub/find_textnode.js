@@ -269,5 +269,5 @@ function observeTextNodeMovement() {
         li[id]:not([id=""]), dt[id]:not([id=""]), \
         dd[id]:not([id=""]), blockquote[id]:not([id=""]), \
         td[id]:not([id=""]), th[id]:not([id=""]), \
-        span[id]:not([id=""]), div[id]:not([id=""])').forEach(tn => io.observe(tn));
+        span[id]:not([id=""])').forEach(tn => io.observe(tn));
 }

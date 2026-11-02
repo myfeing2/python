@@ -128,7 +128,9 @@ class TtsTask(QObject):
                     self.current_frame = 0
                     audio = self.tts_object.tts.generate(self.text, sid=0, speed=1.0)
                     self.audio_data = np.asarray(audio.samples, dtype="float32")
-                    #self.audio_data = librosa.resample(data, orig_sr=audio.sample_rate, target_sr=48000)
+                    # for librosa resample, it may cause audio distortion, so we use the original sample rate
+                    # this work on linux, but on Windows, it may cause audio distortion, so we use the original sample rate
+                    # self.audio_data = librosa.resample(data, orig_sr=audio.sample_rate, target_sr=48000)
                     if self.audio_data.ndim == 1:
                         self.audio_data = self.audio_data.reshape(-1, 1)
                     self.stream = sd.OutputStream(samplerate=audio.sample_rate, channels=1, dtype='float32', callback=self.callback)

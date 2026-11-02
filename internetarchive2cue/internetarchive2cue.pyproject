@@ -1,0 +1,21 @@
+<<<<<<< HEAD
+{
+    "files": [
+        "widget.py",
+        "form.ui",
+        "convert2cue.py",
+        "internetarchive2cue.qrc",
+        "translations/internetarchive2cue_zh_CN.ts"
+    ]
+}
+=======
+{
+    "files": [
+        "widget.py",
+        "form.ui",
+        "convert2cue.py",
+        "internetarchive2cue.qrc",
+        "translations/internetarchive2cue_zh_CN.ts"
+    ]
+}
+>>>>>>> 8ab1643e980ddcf1acddf86f8f7e0f275ba6a2d6

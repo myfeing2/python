@@ -1,0 +1,13 @@
+<<<<<<< HEAD
+<RCC>
+    <qresource prefix="/translations">
+        <file>translations/internetarchive2cue_zh_CN.qm</file>
+    </qresource>
+</RCC>
+=======
+<RCC>
+    <qresource prefix="/translations">
+        <file>translations/internetarchive2cue_zh_CN.qm</file>
+    </qresource>
+</RCC>
+>>>>>>> 8ab1643e980ddcf1acddf86f8f7e0f275ba6a2d6

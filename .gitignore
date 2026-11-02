@@ -1,12 +1,10 @@
 __pycache__
-!requirements.txt
-!tts_matcha.json
+!epub/requirements.txt
 env
 imgs
 imgs-out
 pyside6-source
 matcha-icefall-zh-en
-
 *.onnx
 *.pdf
 *.txt
@@ -18,7 +16,6 @@ matcha-icefall-zh-en
 *.ipynb
 *.*~
 *.cue
-*.json
 *.exe
 *.dll
 =======

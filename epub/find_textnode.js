@@ -56,7 +56,7 @@ function createNodesWalker() {
             nodeName === 'li' || nodeName === 'dt' || 
             nodeName === 'dd' || nodeName === 'blockquote' ||
             nodeName === 'td' || nodeName === 'th' || 
-            nodeName === 'span' || nodeName === 'div')
+            nodeName === 'span')
             ? NodeFilter.FILTER_ACCEPT:
             NodeFilter.FILTER_SKIP;
     };
@@ -99,6 +99,8 @@ function findTextNode(isFirstEntry) {
         let offset = 0;
         const sent_len = window.currNode.textContent.length;
         for (child of window.currNode.childNodes) {
+            //console.log("child nodeType: ", child.nodeType, child.nodeName);
+            //console.log("child node: ", child);
             if (child.nodeType === 3) {
                 const sv = child.nodeValue.trim();
                 const sm = sv.matchAll(/.+?([\\.。]|$)/gu);
@@ -115,6 +117,7 @@ function findTextNode(isFirstEntry) {
                 }
             } else {
                 const sv = child.textContent;
+                //console.log("child text: ", sv);
                 if (sv != null) {
                     window.sentenceNodes = window.sentenceNodes.concat(child);
                     window.sentenceStarts = window.sentenceStarts.concat(0);
@@ -240,19 +243,19 @@ function observeTextNodeMovement() {
         entries.forEach(en => {
             if (en.isIntersecting && en.intersectionRatio > 0) {
                 window.bridge.add_visible(en.target.id);
-                console.log("Node visible: ", en.target.id);
+                //console.log("Node visible: ", en.target.id);
             } else if (!en.isIntersecting || en.intersectionRatio === 0) {
-                console.log("Node not visible: ", en.target.id);
-                console.log("  rootBounds: ", en.rootBounds.top, en.rootBounds.bottom);
-                console.log("  boundingClientRect: ", en.boundingClientRect.top, en.boundingClientRect.bottom);
+                //console.log("Node not visible: ", en.target.id);
+                //console.log("  rootBounds: ", en.rootBounds.top, en.rootBounds.bottom);
+                //console.log("  boundingClientRect: ", en.boundingClientRect.top, en.boundingClientRect.bottom);
                 if (en.boundingClientRect.bottom >= en.rootBounds.bottom) {
                     window.bridge.scroll_up(en.target.id);
-                    console.log("  Node scroll_up: ", en.target.id);
+                    //console.log("  Node scroll_up: ", en.target.id);
                     return;
                 } 
                 if (en.boundingClientRect.top <= en.rootBounds.top) {
                     window.bridge.scroll_down(en.target.id);
-                    console.log("  Node scroll_down: ", en.target.id);
+                    //console.log("  Node scroll_down: ", en.target.id);
                     return;
                 }
             }

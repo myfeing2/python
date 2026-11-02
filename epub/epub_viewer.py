@@ -50,6 +50,11 @@ class Bridge(QObject):
         self.label_id_above = ""
         self.last_vis_label_id = ""
 
+    @Slot(str, result=str)
+    def start_playback(self, first_sentence=None):
+        main_win.start_playback(first_sentence)
+        return f"start_playback of Python 收到: {first_sentence}"
+
     def clear_label_sets(self):
         self.label_id.clear()
         self.label_id_above = ""
@@ -360,10 +365,20 @@ class MainWindow(QMainWindow):
         self.thread.quit()
         self.thread.wait()
 
+    def start_playback(self, first_sentence=None):
+        if not self.playing:
+            self.playing = True
+            self.thread.start()
+            self.first_entry = False
+        value = json.loads(first_sentence)
+        #print("retrieved sentence: ", value)
+        if value["sentence"]:
+            self.ttstask.new_text_arrival(value["sentence"])
+
     def onOpenButtonClick(self, is_checked):
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
-        print("Result:", filename, selected_filter)
+        #print("Result:", filename, selected_filter)
         if filename:
             self.epub.extract_book(filename)
             self.setWindowTitle(self.epub.title)

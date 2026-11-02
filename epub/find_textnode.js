@@ -1,3 +1,19 @@
+document.addEventListener('click', function (event) {
+    //console.log(event.target); // 点击哪个元素，这里就输出哪个
+    createNodesWalker();
+    window.currNode = window.walker.firstChild();
+    while (window.currNode != null) {
+        if (window.currNode.contains(event.target)) {
+            //console.log("Clicked node: ", window.currNode);
+            let first_sentence = findTextNode(false);
+            window.bridge.start_playback(first_sentence);
+            break;
+        }
+        window.currNode = window.walker.nextSibling();
+    }
+    return 
+});
+
 function initWebChannel() {
     let script = document.createElement("script");
     script.src = "qrc:///qtwebchannel/qwebchannel.js";
@@ -48,6 +64,9 @@ function createNodesWalker() {
         }
         if (node.offsetWidth === 0 || node.offsetHeight === 0) {
           return NodeFilter.FILTER_REJECT; // 跳过整个子树
+        }
+        if (node.textContent.trim() === '') {
+            return NodeFilter.FILTER_REJECT; // 跳过整个子树
         }
         return (nodeName === 'p' || nodeName === 'h1' || 
             nodeName === 'h2' || nodeName === 'h2' || 
@@ -135,15 +154,15 @@ function findTextNode(isFirstEntry) {
                 do {
                     let top = rect.top + 
                         window.sentenceHeightOffsets[ind] * rect.height;
-                    console.log("ind, rect.top, sent_offset:",
-                        ind, rect.top, window.sentenceHeightOffsets[ind]);
-                    console.log(window.sentences[ind]);
+                    //console.log("ind, rect.top, sent_offset:",
+                    //    ind, rect.top, window.sentenceHeightOffsets[ind]);
+                    //console.log(window.sentences[ind]);
                     if (top >= 0) break;
                     ind ++;
                 } while (ind < window.sentenceNodes.length);
                 if (ind < window.sentenceNodes.length)
                     window.currSentenceIndex = ind;
-                console.log("ind, sent_ind: ", ind, window.currSentenceIndex);
+                //console.log("ind, sent_ind: ", ind, window.currSentenceIndex);
                 scrollToSentence();
             }
             selectSentence();

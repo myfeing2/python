@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
             self.bridge.clear_label_sets()
             if self.active_chapter['href']:
                 self.scroll_to_text(self.active_chapter['href'])
-            js = self.js_walkercode + f"\ninitWebChannel();"
+            js = self.js_walkercode + f"\ninitWebChannel();\ninitEventListeners();"
             self.active_chapter['view'].page().runJavaScript(js)
             if self.playing:
                 js_code = self.js_walkercode + "\nretrieveFirstSentence();"
@@ -358,6 +358,16 @@ class MainWindow(QMainWindow):
             else:
                 self.ttstask.stop()
 
+    def start_playback(self, first_sentence=None):
+        if not self.playing:
+            self.playing = True
+            self.thread.start()
+            self.first_entry = False
+        value = json.loads(first_sentence)
+        print("start playing sentence: ", value)
+        if value["sentence"]:
+            self.ttstask.new_text_arrival(value["sentence"])
+
     @Slot()
     def ttstask_stop(self):
         self.playing = False
@@ -365,20 +375,9 @@ class MainWindow(QMainWindow):
         self.thread.quit()
         self.thread.wait()
 
-    def start_playback(self, first_sentence=None):
-        if not self.playing:
-            self.playing = True
-            self.thread.start()
-            self.first_entry = False
-        value = json.loads(first_sentence)
-        #print("retrieved sentence: ", value)
-        if value["sentence"]:
-            self.ttstask.new_text_arrival(value["sentence"])
-
     def onOpenButtonClick(self, is_checked):
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
-        #print("Result:", filename, selected_filter)
         if filename:
             self.epub.extract_book(filename)
             self.setWindowTitle(self.epub.title)

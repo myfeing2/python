@@ -1,18 +1,27 @@
-document.addEventListener('click', function (event) {
-    //console.log(event.target); // 点击哪个元素，这里就输出哪个
-    createNodesWalker();
-    window.currNode = window.walker.firstChild();
-    while (window.currNode != null) {
-        if (window.currNode.contains(event.target)) {
-            //console.log("Clicked node: ", window.currNode);
-            let first_sentence = findTextNode(false);
-            window.bridge.start_playback(first_sentence);
-            break;
+function initEventListeners() {
+    document.addEventListener('mouseup', function (event) {
+        selection = window.getSelection();
+        selRange = selection.getRangeAt(0);
+        if (selection.rangeCount > 0) {
+            const startnode = selection.getRangeAt(0).startContainer;
+            createNodesWalker();
+            window.currNode = window.walker.firstChild();
+            while (window.currNode != null) {
+                if (window.currNode.contains(startnode)) {
+                    findTextNode(false);
+                    if (compareRange(selRange)) {
+                        const return_val = {href:window.currNode.id, 
+                            sentence:window.sentences[window.currSentenceIndex]};
+                        window.bridge.start_playback(JSON.stringify(return_val));
+                        return;
+                    }
+                }
+                window.currNode = window.walker.nextSibling();
+            }
         }
-        window.currNode = window.walker.nextSibling();
-    }
-    return 
-});
+        return 
+    });
+}
 
 function initWebChannel() {
     let script = document.createElement("script");
@@ -108,7 +117,7 @@ function findTextNode(isFirstEntry) {
                 rect.top < viewportHeight && rect.bottom > 0 &&
                 rect.left < viewportWidth && rect.right > 0
             );
-            console.log(rect.top, window.currNode.textContent);
+            //console.log(rect.top, window.currNode.textContent);
             if (!isInViewport) {
                 window.currNode = window.walker.nextSibling();
                 continue;
@@ -173,6 +182,28 @@ function findTextNode(isFirstEntry) {
         window.currNode = window.walker.nextSibling();
     }
     return JSON.stringify({href:"",sentence:""}); 
+}
+
+function compareRange(range) {
+    const nodeRange = document.createRange();
+    console.log("compareRange: ", range.toString());
+    let i = 0;
+    while (i < window.sentenceNodes.length) {
+        nodeRange.setStart(window.sentenceNodes[i], window.sentenceStarts[i]);
+        nodeRange.setEnd(window.sentenceNodes[i], 
+            window.sentenceStarts[i] + window.sentenceCounts[i]);
+        result = range.compareBoundaryPoints(Range.END_TO_START, nodeRange);
+        if (result < 0) {
+            console.log("Found sentence: ", window.sentences[i]);
+            window.currSentenceIndex = i;
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(nodeRange);
+            return true;
+        }
+        i++;
+    }
+    return false;
 }
 
 function selectSentence() {

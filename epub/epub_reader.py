@@ -121,7 +121,7 @@ class TtsTask(QObject):
     @Slot()
     def run(self):
         self.is_running = True
-        self.is_generated = True
+        #self.is_generated = True
         while self.is_running:
             if not self.is_generated:
                 try:

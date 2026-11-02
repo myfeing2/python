@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
             self.thread.start()
             self.first_entry = False
         value = json.loads(first_sentence)
-        print("start playing sentence: ", value)
+        #print("start playing sentence: ", value)
         if value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
 

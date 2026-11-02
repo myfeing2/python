@@ -1,0 +1,11 @@
+{
+    "acoustic_model": "matcha-icefall-zh-en/model-steps-3.onnx",
+    "vocoder": "vocos-16khz-univ.onnx",
+    "lexicon": "matcha-icefall-zh-en/lexicon.txt",
+    "tokens": "matcha-icefall-zh-en/tokens.txt",
+    "data_dir": "matcha-icefall-zh-en/espeak-ng-data",
+    "num_threads": 2,
+    "debug": true,
+    "max_num_sentences": 1,
+    "rule_fsts": "matcha-icefall-zh-en/phone-zh.fst,matcha-icefall-zh-en/date-zh.fst,matcha-icefall-zh-en/number-zh.fst"
+}

@@ -125,6 +125,7 @@ class MainWindow(QMainWindow):
         self.active_chapter['view'].page().setWebChannel(self.channel)
 
         self.dev_view = QWebEngineView()
+        self.dev_view.hide()  # 默认隐藏 DevTools
         self.doc_splitter = QSplitter(Qt.Vertical)
         self.doc_splitter.setStretchFactor(0, 3)  # 主视图宽一点
         self.doc_splitter.setStretchFactor(1, 2)  # DevTools 窄一点

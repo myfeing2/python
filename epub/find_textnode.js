@@ -255,9 +255,9 @@ function retrieveFirstSentence() {
 }
 
 function retrieveNextSentence() {
+    isNeedScroll = isInViewport();
     window.currSentenceIndex++;
     if (window.currSentenceIndex < window.sentenceNodes.length) {
-        isNeedScroll = isInViewport();
         selectSentence();
         if (isNeedScroll) scrollToSentence();
         const return_val = {href:"",
@@ -268,7 +268,6 @@ function retrieveNextSentence() {
         window.currNode = window.walker.nextSibling();
         const next_sentence = findTextNode(false);
         if (next_sentence != null) {
-            isNeedScroll = isInViewport();
             if (isNeedScroll) scrollToSentence();
         }
         return JSON.stringify(next_sentence);

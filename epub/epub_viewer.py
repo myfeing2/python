@@ -379,6 +379,7 @@ class MainWindow(QMainWindow):
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
         if filename:
+            self.onStopButtonClick(False)
             self.epub.extract_book(filename)
             self.setWindowTitle(self.epub.title)
             self.toc_tree.clear()

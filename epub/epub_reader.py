@@ -126,15 +126,16 @@ class TtsTask(QObject):
             if not self.is_generated:
                 try:
                     self.current_frame = 0
-                    audio = self.tts_object.tts.generate(self.text, sid=0, speed=1.0)
-                    self.audio_data = np.asarray(audio.samples, dtype="float32")
-                    # for librosa resample, it may cause audio distortion, so we use the original sample rate
-                    # this work on linux, but on Windows, it may cause audio distortion, so we use the original sample rate
-                    # self.audio_data = librosa.resample(data, orig_sr=audio.sample_rate, target_sr=48000)
-                    if self.audio_data.ndim == 1:
-                        self.audio_data = self.audio_data.reshape(-1, 1)
-                    self.stream = sd.OutputStream(samplerate=audio.sample_rate, channels=1, dtype='float32', callback=self.callback)
-                    self.stream.start() # 继续播放
-                    self.is_generated = True
+                    if self.text.strip() != "":
+                        audio = self.tts_object.tts.generate(self.text, sid=0, speed=1.0)
+                        self.audio_data = np.asarray(audio.samples, dtype="float32")
+                        # for librosa resample, it may cause audio distortion, so we use the original sample rate
+                        # this work on linux, but on Windows, it may cause audio distortion, so we use the original sample rate
+                        # self.audio_data = librosa.resample(data, orig_sr=audio.sample_rate, target_sr=48000)
+                        if self.audio_data.ndim == 1:
+                            self.audio_data = self.audio_data.reshape(-1, 1)
+                        self.stream = sd.OutputStream(samplerate=audio.sample_rate, channels=1, dtype='float32', callback=self.callback)
+                        self.stream.start() # 继续播放
+                        self.is_generated = True
                 except sd.PortAudioError:
                     pass

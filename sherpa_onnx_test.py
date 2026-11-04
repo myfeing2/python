@@ -24,7 +24,8 @@ config = sherpa_onnx.OfflineTtsConfig(
 
 tts = sherpa_onnx.OfflineTts(config)
 TEXTS = ["我最近在学习machine learning，",
-         "）",
+         "",
+         "，） ",
          ") ",
         "希望能够在未来的artificial intelligence领域有所建树。",
         "在这次vocation中，",

@@ -43,6 +43,8 @@ TEXTS = ["我最近在学习machine learning，",
         "让机器能够用自然流畅的语音与人类进行交流。"]
 
 for text in TEXTS:
+    if not text.strip():
+        continue
     audio = tts.generate(text, sid=0, speed=1.0)
     sd.play(audio.samples, samplerate=audio.sample_rate)
     sd.wait()

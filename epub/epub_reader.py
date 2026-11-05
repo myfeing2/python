@@ -126,9 +126,7 @@ class TtsTask(QObject):
             if not self.is_generated:
                 try:
                     self.current_frame = 0
-                    if self.text.strip() == "":
-                        self.consumed.emit()
-                    else:
+                    if self.text.strip() != "":
                         audio = self.tts_object.tts.generate(self.text, sid=0, speed=1.0)
                         self.audio_data = np.asarray(audio.samples, dtype="float32")
                         # for librosa resample, it may cause audio distortion, so we use the original sample rate

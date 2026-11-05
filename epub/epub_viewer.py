@@ -337,7 +337,7 @@ class MainWindow(QMainWindow):
 
     def retrieve_sentence(self, value):
         value = json.loads(value)
-        print("retrieved sentence: ", value)
+        #print("retrieved sentence: ", value)
         if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
             return

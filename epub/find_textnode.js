@@ -98,6 +98,8 @@ function findTextNode(isFirstEntry) {
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
     while (window.currNode != null) {
+        //console.log("currNode: ", window.currNode.nodeName, window.currNode.id,
+        //    window.currNode.textContent);
         const rect = window.currNode.getBoundingClientRect();
         if (isFirstEntry) {
             const style = window.getComputedStyle(window.currNode);
@@ -123,14 +125,14 @@ function findTextNode(isFirstEntry) {
                 continue;
             }
         }
-        
+
         let offset = 0;
         const sent_len = window.currNode.textContent.length;
         for (child of window.currNode.childNodes) {
-            //console.log("child nodeType: ", child.nodeType, child.nodeName);
-            //console.log("child node: ", child);
+            //console.log("child node: ", child.nodeName, child.nodeType, child.textContent);
             if (child.nodeType === 3) {
                 const sv = child.nodeValue.trim();
+                if (sv == null || sv.length == 0) continue;
                 const sm = sv.matchAll(/.+?([\\.。]|$)/gu);
                 if (sm != null) {
                     for (s of sm) {
@@ -141,11 +143,13 @@ function findTextNode(isFirstEntry) {
                         window.sentenceHeightOffsets = 
                             window.sentenceHeightOffsets.concat(offset)
                         offset += s[0].length / sent_len;
+                        //console.log("sentence: ", s[0], "offset: ", offset);
                     }
                 }
             } else {
-                const sv = child.textContent;
                 //console.log("child text: ", sv);
+                sv = child.textContent.trim();
+                if (sv == null || sv.length == 0) continue;
                 if (sv != null) {
                     window.sentenceNodes = window.sentenceNodes.concat(child);
                     window.sentenceStarts = window.sentenceStarts.concat(0);
@@ -175,8 +179,12 @@ function findTextNode(isFirstEntry) {
                 scrollToSentence();
             }
             selectSentence();
+            //console.log("Found sentences: ", window.sentences);
+            //console.log("currSentenceIndex: ", window.currSentenceIndex,
+            //    window.sentences[window.currSentenceIndex]);
             const return_val = {href:window.currNode.id, 
                 sentence:window.sentences[window.currSentenceIndex]};
+            //console.log("return_val: ", return_val);
             return return_val;
         }
         window.currNode = window.walker.nextSibling();
@@ -251,6 +259,7 @@ function retrieveFirstSentence() {
     createNodesWalker();
     window.currNode = window.walker.firstChild();
     const result = findTextNode(true);
+    //console.log("first_sentence: ", result);
     return JSON.stringify(result);
 }
 
@@ -267,6 +276,7 @@ function retrieveNextSentence() {
     } else {
         window.currNode = window.walker.nextSibling();
         const next_sentence = findTextNode(false);
+        //console.log("next_sentence: ", next_sentence);
         if (next_sentence != null) {
             if (isNeedScroll) scrollToSentence();
         }

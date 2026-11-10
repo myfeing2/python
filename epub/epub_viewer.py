@@ -342,8 +342,11 @@ class MainWindow(QMainWindow):
             self.ttstask.new_text_arrival(value["sentence"])
             item = self.toc_tree.currentItem()
             next_item = self.toc_tree.itemBelow(item)
-            if next_item and next_item.data(0, Qt.UserRole).get("href") == value["href"]:
-                self.toc_tree.setCurrentItem(next_item)
+            if next_item:
+                href = next_item.data(0, Qt.UserRole).get("href")
+                if href == value["href"]:
+                    self.toc_tree.setCurrentItem(next_item)
+                    self.active_chapter['href'] = href
             return
         else:
             #if no text, load next document, else stop

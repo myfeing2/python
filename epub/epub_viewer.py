@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         self.toc_tree = QTreeWidget()
         self.toc_tree.header().setVisible(False)
         self.toc_tree.itemClicked.connect(self.on_item_clicked)
-        self.active_chapter = dict(name="", doc=self.epub.cover_doc, href='', view=None)
+        self.active_chapter = dict(name="", doc=self.epub.cover_doc, href='', view=None, reading_item=None)
         self.active_chapter['view'] = QWebEngineView()
         self.active_chapter['view'].loadFinished.connect(self.on_load_finished)
 
@@ -338,24 +338,27 @@ class MainWindow(QMainWindow):
     def retrieve_sentence(self, value):
         value = json.loads(value)
         #print("retrieved sentence: ", value)
+        #print(f'active_chapter: {self.active_chapter["reading_item"].text(0) if self.active_chapter["reading_item"] else "None"}, {self.active_chapter["href"]}')
         if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
-            item = self.toc_tree.currentItem()
-            next_item = self.toc_tree.itemBelow(item)
-            if next_item:
-                href = next_item.data(0, Qt.UserRole).get("href")
-                if href == value["href"]:
-                    self.toc_tree.setCurrentItem(next_item)
-                    self.active_chapter['href'] = href
+            if value["href"] != "" and value["href"] != self.active_chapter['href']:
+                next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
+                if next_item:
+                    href = next_item.data(0, Qt.UserRole).get("href")
+                    if value["href"] != "" and href == value["href"]:
+                        #self.toc_tree.setCurrentItem(next_item)
+                        self.active_chapter["reading_item"] = next_item
+                        self.active_chapter['href'] = href
             return
         else:
             #if no text, load next document, else stop
-            item = self.toc_tree.currentItem()
+            #item = self.toc_tree.currentItem()
             #print(f"current_item: {item.text(0) if item else 'None'}")
-            next_item = self.toc_tree.itemBelow(item)
+            next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
             #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
             if next_item:
                 self.toc_tree.setCurrentItem(next_item)
+                self.active_chapter["reading_item"] = next_item
                 self.active_chapter['doc'], \
                 self.active_chapter['href'] = \
                     next_item.data(0, Qt.UserRole).get("doc"), \
@@ -374,6 +377,7 @@ class MainWindow(QMainWindow):
         #print("start playing sentence: ", value)
         if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
+            self.active_chapter["reading_item"] = self.toc_tree.currentItem()
 
     @Slot()
     def ttstask_stop(self):
@@ -410,6 +414,7 @@ class MainWindow(QMainWindow):
             else:
                 js_code = self.js_walkercode + "\nretrieveNextSentence();"
             self.active_chapter['view'].page().runJavaScript(js_code, self.retrieve_sentence)
+            self.active_chapter["reading_item"] = self.toc_tree.currentItem()
             self.first_entry = False
         else:
             self.ttstask.play()
@@ -428,6 +433,12 @@ class MainWindow(QMainWindow):
         if self.playing:
             js_code = self.js_walkercode + "\nscrollToSentence();"
             self.active_chapter['view'].page().runJavaScript(js_code)
+            selected = self.toc_tree.selectedItems()
+            if selected:
+                for item in selected:
+                    item.setSelected(False)
+            if self.active_chapter["reading_item"]:
+                self.toc_tree.setCurrentItem(self.active_chapter["reading_item"])
 
     def onCoverButtonClick(self):
         if self.playing:

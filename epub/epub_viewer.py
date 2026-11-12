@@ -330,6 +330,16 @@ class MainWindow(QMainWindow):
             last_item = item
             it += 1
 
+    def get_reading_item(self, href):
+        it = QTreeWidgetItemIterator(self.toc_tree)
+        while it.value():
+            item = it.value()
+            item_href = item.data(0, Qt.UserRole).get("href")
+            if item_href == href:
+                return item
+            it += 1
+        return None
+
     @Slot()
     def send_next_text(self):
         js = self.js_walkercode + "\nretrieveNextSentence();"
@@ -342,18 +352,13 @@ class MainWindow(QMainWindow):
         if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
             if value["href"] != "" and value["href"] != self.active_chapter['href']:
-                next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
-                if next_item:
-                    href = next_item.data(0, Qt.UserRole).get("href")
-                    if value["href"] != "" and href == value["href"]:
-                        #self.toc_tree.setCurrentItem(next_item)
-                        self.active_chapter["reading_item"] = next_item
-                        self.active_chapter['href'] = href
-            return
+                reading_item = self.get_reading_item(value["href"])
+                #print(f"reading item {reading_item.text(0)}")
+                if reading_item:
+                    self.active_chapter['href'] = value["href"]
+                    self.active_chapter["reading_item"] = reading_item
         else:
             #if no text, load next document, else stop
-            #item = self.toc_tree.currentItem()
-            #print(f"current_item: {item.text(0) if item else 'None'}")
             next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
             #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
             if next_item:
@@ -373,11 +378,7 @@ class MainWindow(QMainWindow):
             self.playing = True
             self.thread.start()
             self.first_entry = False
-        value = json.loads(first_sentence)
-        #print("start playing sentence: ", value)
-        if value and value["sentence"]:
-            self.ttstask.new_text_arrival(value["sentence"])
-            self.active_chapter["reading_item"] = self.toc_tree.currentItem()
+        self.retrieve_sentence(first_sentence)
 
     @Slot()
     def ttstask_stop(self):
@@ -387,10 +388,11 @@ class MainWindow(QMainWindow):
         self.thread.wait()
 
     def onOpenButtonClick(self, is_checked):
+        self.onStopButtonClick(False)
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
         if filename:
-            self.onStopButtonClick(False)
+            self.epub = EpubBook()
             self.epub.extract_book(filename)
             self.setWindowTitle(self.epub.title)
             self.toc_tree.clear()

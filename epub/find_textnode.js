@@ -7,10 +7,14 @@ function initEventListeners() {
             createNodesWalker();
             window.currNode = window.walker.firstChild();
             while (window.currNode != null) {
+                if (window.currNode.id != null && window.currNode.id !== "") {
+                    window.currHref = window.currNode.id;
+                    //console.log("currHref: ", window.currHref);
+                }
                 if (window.currNode.contains(startnode)) {
                     findTextNode(false);
                     if (compareRange(selRange)) {
-                        const return_val = {href:window.currNode.id, 
+                        const return_val = {href:window.sentenceHrefs[window.currSentenceIndex], 
                             sentence:window.sentences[window.currSentenceIndex]};
                         window.bridge.start_playback(JSON.stringify(return_val));
                         return;
@@ -52,10 +56,12 @@ function initWebChannel() {
 function initNodeVariables() {
     window.walker = null;
     window.currNode = null;
+    window.currHref = "";
 }
 
 function initSentenceVariables() {
-    window.sentenceNodes = []
+    window.sentenceNodes = [];
+    window.sentenceHrefs = [];
     window.sentenceStarts = [];
     window.sentenceCounts = [];
     window.sentences = [];
@@ -100,6 +106,10 @@ function findTextNode(isFirstEntry) {
     while (window.currNode != null) {
         //console.log("currNode: ", window.currNode.nodeName, window.currNode.id,
         //    window.currNode.textContent);
+        if (window.currNode.id != null && window.currNode.id !== "") {
+            window.currHref = window.currNode.id;
+            //console.log("currHref: ", window.currHref);
+        }
         const rect = window.currNode.getBoundingClientRect();
         if (isFirstEntry) {
             const style = window.getComputedStyle(window.currNode);
@@ -137,6 +147,7 @@ function findTextNode(isFirstEntry) {
                 if (sm != null) {
                     for (s of sm) {
                         window.sentenceNodes = window.sentenceNodes.concat(child);
+                        window.sentenceHrefs = window.sentenceHrefs.concat(window.currHref);
                         window.sentenceStarts = window.sentenceStarts.concat(s.index);
                         window.sentenceCounts = window.sentenceCounts.concat(s[0].length);
                         window.sentences = window.sentences.concat(s[0]);
@@ -152,6 +163,7 @@ function findTextNode(isFirstEntry) {
                 if (sv == null || sv.length == 0) continue;
                 if (sv != null) {
                     window.sentenceNodes = window.sentenceNodes.concat(child);
+                    window.sentenceHrefs = window.sentenceHrefs.concat(window.currHref);
                     window.sentenceStarts = window.sentenceStarts.concat(0);
                     window.sentenceCounts = window.sentenceCounts.concat(child.childNodes.length);
                     window.sentences = window.sentences.concat(sv);
@@ -182,7 +194,7 @@ function findTextNode(isFirstEntry) {
             //console.log("Found sentences: ", window.sentences);
             //console.log("currSentenceIndex: ", window.currSentenceIndex,
             //    window.sentences[window.currSentenceIndex]);
-            const return_val = {href:window.currNode.id, 
+            const return_val = {href:window.sentenceHrefs[window.currSentenceIndex], 
                 sentence:window.sentences[window.currSentenceIndex]};
             //console.log("return_val: ", return_val);
             return return_val;
@@ -269,7 +281,7 @@ function retrieveNextSentence() {
     if (window.currSentenceIndex < window.sentenceNodes.length) {
         selectSentence();
         if (isNeedScroll) scrollToSentence();
-        const return_val = {href:"",
+        const return_val = {href:window.sentenceHrefs[window.currSentenceIndex],
             sentence:window.sentences[window.currSentenceIndex]
         }
         return JSON.stringify(return_val);

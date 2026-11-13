@@ -416,7 +416,6 @@ class MainWindow(QMainWindow):
             else:
                 js_code = self.js_walkercode + "\nretrieveNextSentence();"
             self.active_chapter['view'].page().runJavaScript(js_code, self.retrieve_sentence)
-            self.active_chapter["reading_item"] = self.toc_tree.currentItem()
             self.first_entry = False
         else:
             self.ttstask.play()

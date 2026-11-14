@@ -1,6 +1,27 @@
+function isMouseOnScrollbar(e, element) {
+    // 获取元素的可视区域宽度（不含滚动条）
+    const rect = element.getBoundingClientRect();
+    // 判断水平方向是否在滚动条区域
+    // 如果元素有垂直滚动条，clientX 会大于 rect.right
+    if (e.clientX > rect.right) {
+        return true;
+    }
+    // 判断垂直方向是否在底部滚动条区域
+    if (e.clientY > rect.bottom) {
+        return true;
+    }
+    return false;
+}
+
 function initEventListeners() {
     document.addEventListener('mouseup', function (event) {
         selection = window.getSelection();
+        if (isMouseOnScrollbar(event, event.target)) {
+            //console.log('点在滚动条上');
+            return
+        } else {
+            //console.log('点在元素内容上');
+        }
         if (selection.rangeCount > 0) {
             const selRange = selection.getRangeAt(0);
             const startnode = selection.getRangeAt(0).startContainer;

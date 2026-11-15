@@ -214,9 +214,26 @@ class MainWindow(QMainWindow):
         self.dev_view_action.setEnabled(True)
         toolbar.addAction(self.dev_view_action)
 
+        self.prev_chapter_action = QAction(
+            QIcon(os.path.join(basedir, "res/prev_chapter.png")),
+            "previous_chapter",
+            self,
+        )
+        self.prev_chapter_action.triggered.connect(self.onPrevChapterButtonClick)
+        self.prev_chapter_action.setEnabled(True)
+        toolbar.addAction(self.prev_chapter_action)
+
+        self.next_chapter_action = QAction(
+            QIcon(os.path.join(basedir, "res/next_chapter.png")),
+            "next_chapter",
+            self,
+        )
+        self.next_chapter_action.triggered.connect(self.onNextChapterButtonClick)
+        self.next_chapter_action.setEnabled(True)
+        toolbar.addAction(self.next_chapter_action)
+
 
     def closeEvent(self, event):
-        #print("closing window...")
         if self.playing:
             self.playing = False
             self.first_entry = True
@@ -264,7 +281,8 @@ class MainWindow(QMainWindow):
                 item.data(0, Qt.UserRole).get("href")
             self.toc_tree.setCurrentItem(item)
             if self.active_chapter['doc'] == doc:
-                self.scroll_to_text(href)
+                if href:
+                    self.scroll_to_text(href)
             else:
                 self.active_chapter['doc'] = doc
                 self.active_chapter['href'] = href
@@ -330,12 +348,23 @@ class MainWindow(QMainWindow):
             last_item = item
             it += 1
 
-    def get_reading_item(self, href):
+    def find_doc_item(self, doc):
         it = QTreeWidgetItemIterator(self.toc_tree)
         while it.value():
             item = it.value()
+            item_doc = item.data(0, Qt.UserRole).get("doc")
+            if item_doc == doc:
+                return item
+            it += 1
+        return None
+
+    def get_reading_item(self, doc, href):
+        it = QTreeWidgetItemIterator(self.toc_tree)
+        while it.value():
+            item = it.value()
+            item_doc = item.data(0, Qt.UserRole).get("doc")
             item_href = item.data(0, Qt.UserRole).get("href")
-            if item_href == href:
+            if item_doc == doc and item_href == href:
                 return item
             it += 1
         return None
@@ -351,8 +380,8 @@ class MainWindow(QMainWindow):
         #print(f'active_chapter: {self.active_chapter["reading_item"].text(0) if self.active_chapter["reading_item"] else "None"}, {self.active_chapter["href"]}')
         if value and value["sentence"]:
             self.ttstask.new_text_arrival(value["sentence"])
-            if value["href"] != "" and value["href"] != self.active_chapter['href']:
-                reading_item = self.get_reading_item(value["href"])
+            if value["href"] != "":
+                reading_item = self.get_reading_item(self.active_chapter["doc"], value["href"])
                 #print(f"reading item {reading_item.text(0)}")
                 if reading_item:
                     self.active_chapter['href'] = value["href"]
@@ -371,7 +400,14 @@ class MainWindow(QMainWindow):
                 html = self.epub.load_document(self.active_chapter['doc'])
                 self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
             else:
-                self.ttstask.stop()
+                next_doc = self.epub.find_next_doc(self.active_chapter["doc"])
+                #print(f"next doc: {next_doc}")
+                if next_doc:
+                    self.active_chapter["doc"] = next_doc
+                    html = self.epub.load_document(self.active_chapter['doc'])
+                    self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
+                else:
+                    self.ttstask.stop()
 
     def start_playback(self, first_sentence=None):
         if not self.playing:
@@ -389,6 +425,9 @@ class MainWindow(QMainWindow):
 
     def onOpenButtonClick(self, is_checked):
         self.onStopButtonClick(False)
+        if self.epub:
+            self.epub.remove_tmp_dir()
+        self.epub = None
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
         if filename:
@@ -450,7 +489,6 @@ class MainWindow(QMainWindow):
         self.active_chapter['href'] = ''
         html = self.epub.load_cover_doc()
         path = os.path.join(self.epub.book_path, self.active_chapter['doc'])
-        #print(f"onCoverButtonClick: {path}")
         self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(path))
 
     def onDevViewButtonClick(self):
@@ -459,6 +497,33 @@ class MainWindow(QMainWindow):
         else:
             self.dev_view.show()
             self.doc_splitter.setSizes([3, 2])  # 调整分割器大小，使 DevTools 可见
+
+    def onPrevChapterButtonClick(self):
+         if self.epub and self.active_chapter["doc"]:
+             prev_doc = self.epub.find_previous_doc(self.active_chapter["doc"])
+             if prev_doc:
+                self.active_chapter["doc"] = prev_doc
+                self.active_chapter['href'] = ""
+                self.active_chapter["reading_item"] = None
+                item = self.find_doc_item(prev_doc)
+                if item:
+                    self.toc_tree.setCurrentItem(item)
+                html = self.epub.load_document(self.active_chapter['doc'])
+                self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
+
+    def onNextChapterButtonClick(self):
+        if self.epub and self.active_chapter["doc"]:
+            next_doc = self.epub.find_next_doc(self.active_chapter["doc"])
+            if next_doc:
+                self.active_chapter["doc"] = next_doc
+                self.active_chapter['href'] = ""
+                self.active_chapter["reading_item"] = None
+                item = self.find_doc_item(next_doc)
+                if item:
+                    self.toc_tree.setCurrentItem(item)
+                html = self.epub.load_document(self.active_chapter['doc'])
+                self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

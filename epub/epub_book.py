@@ -37,6 +37,10 @@ class EpubBook:
         self.toc = self.load_toc()
         self.find_cover_doc()
 
+    def remove_tmp_dir(self):
+        if self.temp_dir:
+            shutil.rmtree(self.temp_dir.name)
+
     def find_cover_doc(self):
         cover_meta = self.book.get_metadata('OPF', 'cover')
         if cover_meta:
@@ -47,14 +51,6 @@ class EpubBook:
             #print("No cover metadata found.")
             item_id = self.book.spine[0][0]  # 获取第一个资源 ID
             self.cover_doc = self.book.get_item_with_id(item_id).get_name()
-            '''
-            for item_ref in self.book.spine:
-                item_id = item_ref[0] # 获取资源 ID
-                # 3. 根据 ID 获取具体的 EpubHtml 对象
-                if "cover" == item_id.lower() or "titlepage" == item_id.lower():
-                    self.cover_doc = self.book.get_item_with_id(item_id).get_name()
-                    #print(f"Found cover document: {self.cover_doc}")
-            '''
 
     def load_cover_doc(self) -> str:
         if self.cover_doc:
@@ -79,27 +75,57 @@ class EpubBook:
     def split_text(self, text:str) -> list:
         return re.split(r'[,.;?!，。；？！]', text)
 
+    def find_id(self, fname):
+        for item in self.book.get_items():
+            if fname == item.get_name():
+                return item.get_id()
+        return ""
+
+    def find_previous_doc(self, fname):
+        saved_item = self.book.get_items().__next__()
+        if saved_item:
+            saved_name = saved_item.get_name()
+        for item in self.book.get_items():
+            if item.get_name() == fname:
+                return saved_name
+            else:
+                saved_name = item.get_name()
+        return ""
+
+    def find_next_doc(self, fname):
+        items = self.book.get_items()
+        item = items.__next__()
+        while item:
+            if fname == item.get_name():
+                item = items.__next__()
+                if item.get_type() == ebooklib.ITEM_DOCUMENT:
+                    return item.get_name()
+                else:
+                    continue
+            item = items.__next__()
+        return None
+
     def load_toc(self):
         # 遍历所有文档项 (XHTML/HTML)
         contents = []
         for item in self.book.get_items():
             # 获取文档名称
-            file_name = item.get_name()
-            if file_name.endswith('.ncx'):
+            file_id = item.get_id()
+            if file_id == 'ncx':
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("navMap")
-                id = {'id':0}
-                contents = self.build_toc_ver2(root, -1, id)
+                contents = self.build_toc_ver2(root, -1, "")
+                #print(f"toc2 tree: {contents}")
                 break
-            elif file_name.endswith("nav.xhtml"):
+            elif file_id == "nav":
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
-                id = {'id':0}
-                contents = self.build_toc_ver3(root, 0, id)
+                contents = self.build_toc_ver3(root, 0, "")
+                print(f"toc3 tree: {contents}")
                 break
         return contents
 
-    def build_toc_ver3(self, root:BeautifulSoup, tier:int, id:dict) -> list:
+    def build_toc_ver3(self, root:BeautifulSoup, tier:int, id:str) -> list:
         value = []
         for child in root.children:
             if child.name == "ol":
@@ -107,20 +133,17 @@ class EpubBook:
                 value.append(self.build_toc_ver3(child, tier, id))
             elif child.name == 'li':
                 value.append(self.build_toc_ver3(child, tier, id))
-            elif child.name == 'span':
-                id['id'] += 1
-                value.append((tier, id['id'], child.get_text(), None, None))
             elif child.name == 'a':
-                id['id'] += 1
                 if child['href'].find('#') != -1:
                     file, ref = child['href'].split('#')
                 else:
                     file = child['href']
                     ref = None
-                value.append((tier, id['id'], child.get_text(), file, ref))
+                id = self.find_id(file)
+                value.append((tier, id, child.get_text(), file, ref))
         return value
 
-    def build_toc_ver2(self, root:BeautifulSoup, tier:int, id:dict) -> list:
+    def build_toc_ver2(self, root:BeautifulSoup, tier:int, id:str) -> list:
         value = []
         tier += 1
         for child in root.children:
@@ -132,10 +155,9 @@ class EpubBook:
                 else:
                     file = child['src']
                     ref = None
-                value.append((tier, id['id'], label, file, ref))
+                value.append((tier, id, label, file, ref))
             elif child.name == "navPoint":
-                id['id'] += 1
-                value.append(self.build_toc_ver2(child, tier, id))
+                value.append(self.build_toc_ver2(child, tier, child['id']))
         return value
 
     def search_chapter(self, id:int, toc:list) -> tuple:

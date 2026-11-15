@@ -457,7 +457,7 @@ class MainWindow(QMainWindow):
             if self.first_entry:
                 js_code = self.js_walkercode + "\nretrieveFirstSentence();"
             else:
-                js_code = self.js_walkercode + "\nretrieveNextSentence();"
+                js_code = self.js_walkercode + "\nretrieveCurrSentence();"
             self.active_chapter['view'].page().runJavaScript(js_code, self.retrieve_sentence)
             self.first_entry = False
         else:

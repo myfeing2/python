@@ -296,6 +296,19 @@ function retrieveFirstSentence() {
     return JSON.stringify(result);
 }
 
+function retrieveCurrSentence() {
+    isNeedScroll = isInViewport();
+    if (window.currSentenceIndex < window.sentenceNodes.length) {
+        //console.log("current sentence: ", window.sentences[window.currSentenceIndex])
+        selectSentence();
+        if (isNeedScroll) scrollToSentence();
+        const return_val = {href:window.sentenceHrefs[window.currSentenceIndex],
+            sentence:window.sentences[window.currSentenceIndex]
+        }
+        return JSON.stringify(return_val);
+    }
+}
+
 function retrieveNextSentence() {
     isNeedScroll = isInViewport();
     window.currSentenceIndex++;

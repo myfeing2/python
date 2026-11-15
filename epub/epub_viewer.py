@@ -42,6 +42,7 @@ os.environ['QT_OPENGL'] = 'software'
 
 basedir = os.path.dirname(__file__)
 main_win = None
+default_win_title = "epub viewer"
 
 class Bridge(QObject):
     def __init__(self):
@@ -102,11 +103,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.epub = EpubBook()
+        self.epub = None
         self.toc_tree = QTreeWidget()
         self.toc_tree.header().setVisible(False)
         self.toc_tree.itemClicked.connect(self.on_item_clicked)
-        self.active_chapter = dict(name="", doc=self.epub.cover_doc, href='', view=None, reading_item=None)
+        self.active_chapter = dict(name="", doc="", href='', view=None, reading_item=None)
         self.active_chapter['view'] = QWebEngineView()
         self.active_chapter['view'].loadFinished.connect(self.on_load_finished)
 
@@ -119,7 +120,7 @@ class MainWindow(QMainWindow):
         self.ttstask.finished.connect(self.ttstask_stop)
         self.thread.started.connect(self.ttstask.run)  # 线程启动时执行任务
 
-        self.setWindowTitle(self.epub.title)
+        self.setWindowTitle(default_win_title)
         
         with open(os.path.join(basedir, "find_textnode.js"), "r", encoding="utf-8") as f:
             self.js_walkercode = f.read()
@@ -425,12 +426,13 @@ class MainWindow(QMainWindow):
 
     def onOpenButtonClick(self, is_checked):
         self.onStopButtonClick(False)
-        if self.epub:
-            self.epub.remove_tmp_dir()
-        self.epub = None
         filters = "EPUB Files (*.epub);;All Files (*)"
         filename, selected_filter = QFileDialog.getOpenFileName(self, "Open File", "", filters)
+        #print(f"filename: {filename}")
         if filename:
+            if self.epub:
+                self.epub.remove_tmp_dir()
+                self.epub = None
             self.epub = EpubBook()
             self.epub.extract_book(filename)
             self.setWindowTitle(self.epub.title)

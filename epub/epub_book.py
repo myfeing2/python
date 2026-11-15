@@ -34,7 +34,7 @@ class EpubBook:
         self.book = epub.read_epub(self.book_path)
         self.book_path = os.path.join(self.book_path, os.path.dirname(opf_path))
         self.title = self.book.get_metadata('DC', 'title')[0][0]
-        self.toc = self.load_toc()
+        self.load_toc()
         self.find_cover_doc()
 
     def remove_tmp_dir(self):
@@ -107,23 +107,22 @@ class EpubBook:
 
     def load_toc(self):
         # 遍历所有文档项 (XHTML/HTML)
-        contents = []
+        self.toc = []
         for item in self.book.get_items():
             # 获取文档名称
             file_id = item.get_id()
             if file_id == 'ncx':
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("navMap")
-                contents = self.build_toc_ver2(root, -1, "")
-                #print(f"toc2 tree: {contents}")
+                self.toc = self.build_toc_ver2(root, -1, "")
+                #print(f"toc2 tree: {self.toc}")
                 break
             elif file_id == "nav":
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
-                contents = self.build_toc_ver3(root, 0, "")
-                #print(f"toc3 tree: {contents}")
+                self.toc = self.build_toc_ver3(root, 0, "")
+                #print(f"toc3 tree: {self.toc}")
                 break
-        return contents
 
     def build_toc_ver3(self, root:BeautifulSoup, tier:int, id:str) -> list:
         value = []

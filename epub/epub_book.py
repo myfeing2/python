@@ -121,7 +121,7 @@ class EpubBook:
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
                 contents = self.build_toc_ver3(root, 0, "")
-                print(f"toc3 tree: {contents}")
+                #print(f"toc3 tree: {contents}")
                 break
         return contents
 

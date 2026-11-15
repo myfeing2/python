@@ -447,6 +447,8 @@ class MainWindow(QMainWindow):
             self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(path))
 
     def onPlayButtonClick(self, is_checked):
+        if not self.epub:
+            return
         if not self.playing:
             self.playing = True
             self.thread.start()
@@ -460,16 +462,22 @@ class MainWindow(QMainWindow):
             self.ttstask.play()
 
     def onPauseButtonClick(self, is_checked):
+        if not self.epub:
+            return
         if self.playing:
             self.ttstask.pause()
 
     def onStopButtonClick(self, is_checked):
+        if not self.epub:
+            return
         if self.playing:
             self.playing = False
             self.first_entry = True
             self.ttstask.stop()
 
     def onReturnButtonClick(self, is_checked):
+        if not self.epub:
+            return
         if self.playing:
             js_code = self.js_walkercode + "\nscrollToSentence();"
             self.active_chapter['view'].page().runJavaScript(js_code)
@@ -481,6 +489,8 @@ class MainWindow(QMainWindow):
                 self.toc_tree.setCurrentItem(self.active_chapter["reading_item"])
 
     def onCoverButtonClick(self):
+        if not self.epub:
+            return
         if self.playing:
             self.ttstask.stop()
             self.first_entry = True

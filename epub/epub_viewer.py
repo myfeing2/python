@@ -420,7 +420,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def ttstask_stop(self):
         self.playing = False
-        self.first_entry = True
+        #self.first_entry = True
         self.thread.quit()
         self.thread.wait()
 
@@ -474,7 +474,7 @@ class MainWindow(QMainWindow):
             return
         if self.playing:
             self.playing = False
-            self.first_entry = True
+            #self.first_entry = False
             self.ttstask.stop()
 
     def onReturnButtonClick(self, is_checked):

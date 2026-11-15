@@ -300,6 +300,7 @@ function retrieveNextSentence() {
     isNeedScroll = isInViewport();
     window.currSentenceIndex++;
     if (window.currSentenceIndex < window.sentenceNodes.length) {
+        //console.log("next sentence: ", window.sentences[window.currSentenceIndex])
         selectSentence();
         if (isNeedScroll) scrollToSentence();
         const return_val = {href:window.sentenceHrefs[window.currSentenceIndex],

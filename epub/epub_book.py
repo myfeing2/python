@@ -125,7 +125,7 @@ class EpubBook:
                 self.toc = self.build_toc_ver2(root, -1, "")
                 #print(f"toc2 tree: {self.toc}")
                 break
-            elif file_type == ebooklib.ITEM_DOCUMENT and "nav" in item.properties:
+            elif file_type == ebooklib.ITEM_DOCUMENT and file_name.startswith("nav"):
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
                 self.toc = self.build_toc_ver3(root, 0, "")

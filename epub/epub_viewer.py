@@ -388,7 +388,10 @@ class MainWindow(QMainWindow):
                     self.active_chapter["reading_item"] = reading_item
         else:
             #if no text, load next document, else stop
-            next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
+            if self.active_chapter["reading_item"]:
+                next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
+            else:
+                next_item = None
             #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
             if next_item:
                 self.toc_tree.setCurrentItem(next_item)
@@ -408,6 +411,7 @@ class MainWindow(QMainWindow):
                     self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
                 else:
                     self.ttstask.stop()
+                    self.first_entry = True
 
     def start_playback(self, first_sentence=None):
         if not self.playing:

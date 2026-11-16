@@ -246,6 +246,7 @@ class MainWindow(QMainWindow):
             #print("name: " + self.active_chapter['name'])
             #print("href: " + self.active_chapter['href'])
             self.bridge.clear_label_sets()
+            self.active_chapter["reading_item"] = None
             if self.active_chapter['href']:
                 self.scroll_to_text(self.active_chapter['href'])
             js = self.js_walkercode + f"\ninitWebChannel();\ninitEventListeners();\ninitNodeVariables();\ninitSentenceVariables()"
@@ -254,6 +255,8 @@ class MainWindow(QMainWindow):
                 self.first_entry = False
                 js = self.js_walkercode + f"\nretrieveFirstSentence();"
                 self.active_chapter['view'].page().runJavaScript(js, self.retrieve_sentence)
+            else:
+                self.first_entry = True
         else:
             print("loading page failure.")
 
@@ -289,10 +292,12 @@ class MainWindow(QMainWindow):
                 #print(f"on_item_clicked: {self.active_chapter['doc']}, {self.active_chapter['href']}")
                 html = self.epub.load_document(self.active_chapter['doc'])
                 self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
+                '''
                 if self.playing:
                     self.ttstask.stop()
                     self.first_entry = True
                     self.playing = False
+                '''
 
     def select_visible(self, chapter_href):
         it = QTreeWidgetItemIterator(self.toc_tree)
@@ -386,33 +391,30 @@ class MainWindow(QMainWindow):
                 if reading_item:
                     self.active_chapter['href'] = value["href"]
                     self.active_chapter["reading_item"] = reading_item
-        else:
-            #if no text, load next document, else stop
-            if self.active_chapter["reading_item"]:
+        elif self.active_chapter["reading_item"]:
                 next_item = self.toc_tree.itemBelow(self.active_chapter["reading_item"])
-            else:
-                next_item = None
-            #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
-            if next_item:
-                self.toc_tree.setCurrentItem(next_item)
-                self.active_chapter["reading_item"] = next_item
-                self.active_chapter['doc'], \
-                self.active_chapter['href'] = \
-                    next_item.data(0, Qt.UserRole).get("doc"), \
-                    next_item.data(0, Qt.UserRole).get("href")
+                #print(f"next_item: {next_item.text(0) if next_item else 'None'}")
+                if next_item:
+                    self.toc_tree.setCurrentItem(next_item)
+                    self.active_chapter["reading_item"] = next_item
+                    self.active_chapter['doc'], \
+                    self.active_chapter['href'] = \
+                        next_item.data(0, Qt.UserRole).get("doc"), \
+                        next_item.data(0, Qt.UserRole).get("href")
+                    html = self.epub.load_document(self.active_chapter['doc'])
+                    self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
+        else:
+            next_doc = self.epub.find_next_doc(self.active_chapter["doc"])
+            #print(f"next doc: {next_doc}")
+            if next_doc:
+                self.active_chapter["doc"] = next_doc
                 html = self.epub.load_document(self.active_chapter['doc'])
                 self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
             else:
-                next_doc = self.epub.find_next_doc(self.active_chapter["doc"])
-                #print(f"next doc: {next_doc}")
-                if next_doc:
-                    self.active_chapter["doc"] = next_doc
-                    html = self.epub.load_document(self.active_chapter['doc'])
-                    self.active_chapter['view'].setHtml(html, QUrl.fromLocalFile(os.path.join(self.epub.book_path, self.active_chapter['doc'])))
-                else:
-                    self.ttstask.stop()
-                    self.first_entry = True
+                self.ttstask.stop()
+                self.first_entry = True
 
+    @Slot(str)
     def start_playback(self, first_sentence=None):
         if not self.playing:
             self.playing = True

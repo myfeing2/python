@@ -297,9 +297,7 @@ function retrieveFirstSentence() {
 }
 
 function retrieveCurrSentence() {
-    if (window.sentenceNodes == [] || window.sentenceNodes === null) {
-        retrieveNextSentence()
-    } else if (window.currSentenceIndex < window.sentenceNodes.length) {
+    if (window.currSentenceIndex < window.sentenceNodes.length) {
         isNeedScroll = isInViewport();
         //console.log("current sentence: ", window.sentences[window.currSentenceIndex])
         selectSentence();

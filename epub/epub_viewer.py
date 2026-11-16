@@ -263,16 +263,15 @@ class MainWindow(QMainWindow):
         js = self.js_walkercode + f"\nscrollToText('{escaped}');"
         self.active_chapter['view'].page().runJavaScript(js)
 
-    def add_tree_items(self, toc:list, parent: QTreeWidgetItem):
-        last_tree_item = parent
+    def add_tree_items(self, toc:list, parent_item: QTreeWidgetItem):
         for item in toc:
             if type(item) == tuple:
                 tree_item = QTreeWidgetItem([item[2]])
                 tree_item.setData(0, Qt.UserRole, {"doc":item[3], "href":item[4]})
-                parent.addChild(tree_item)
-                last_tree_item = tree_item
+                parent_item.addChild(tree_item)
+                parent_item = tree_item
             else:
-                self.add_tree_items(item, last_tree_item)
+                self.add_tree_items(item, parent_item)
 
     def on_item_clicked(self, item, column):
         if self.epub.toc != []:

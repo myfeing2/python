@@ -82,27 +82,35 @@ class EpubBook:
         return ""
 
     def find_previous_doc(self, fname):
-        saved_item = self.book.get_items().__next__()
-        if saved_item:
-            saved_name = saved_item.get_name()
-        for item in self.book.get_items():
-            if item.get_name() == fname:
-                return saved_name
-            else:
-                saved_name = item.get_name()
+        try:
+            saved_item = next(self.book.get_items())
+            if saved_item:
+                saved_name = saved_item.get_name()
+            for item in self.book.get_items():
+                if item.get_name() == fname:
+                    return saved_name
+                else:
+                    saved_name = item.get_name()
+        except StopIteration:
+            return ""
         return ""
 
     def find_next_doc(self, fname):
         items = self.book.get_items()
-        item = items.__next__()
-        while item:
-            if fname == item.get_name():
-                item = items.__next__()
-                if item.get_type() == ebooklib.ITEM_DOCUMENT:
-                    return item.get_name()
-                else:
-                    continue
-            item = items.__next__()
+        while True:
+            try:
+                item = next(items)
+                if fname == item.get_name():
+                    try:
+                        item = next(items)
+                        if item.get_type() == ebooklib.ITEM_DOCUMENT:
+                            return item.get_name()
+                        else:
+                            continue
+                    except StopIteration:
+                        break
+            except StopIteration:
+                break
         return None
 
     def load_toc(self):
@@ -120,16 +128,17 @@ class EpubBook:
                 #print(f" toc item in opf: {file_id, file_name}")
             if file_id == 'ncx' or file_name.endswith("ncx"):
                 soup = BeautifulSoup(item.get_content(), 'xml')
-                #print(f"soup: {soup}")
                 root = soup.find("navMap")
                 self.toc = self.build_toc_ver2(root, -1, "")
-                #print(f"toc2 tree: {self.toc}")
+                #self.print_toc(self.toc)
+                #print(self.toc)
                 break
             elif file_type == ebooklib.ITEM_DOCUMENT and file_name.startswith("nav"):
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
                 self.toc = self.build_toc_ver3(root, 0, "")
-                #print(f"toc3 tree: {self.toc}")
+                #self.print_toc(self.toc)
+                #print(self.toc)
                 break
 
     def build_toc_ver3(self, root:BeautifulSoup, tier:int, id:str) -> list:
@@ -148,6 +157,8 @@ class EpubBook:
                     ref = None
                 id = self.find_id(file)
                 value.append((tier, id, child.get_text(), file, ref))
+            elif child.name == 'span' or child.name == 'div':
+                 value.append((tier, id, child.get_text(), "", None))
         return value
 
     def build_toc_ver2(self, root:BeautifulSoup, tier:int, id:str) -> list:

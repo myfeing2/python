@@ -4,6 +4,7 @@ imgs
 imgs-out
 pyside6-source
 matcha-icefall-zh-en
+mdict2sqlite
 *.onnx
 *.pdf
 *.txt

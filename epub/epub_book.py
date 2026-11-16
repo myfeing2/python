@@ -110,14 +110,22 @@ class EpubBook:
         self.toc = []
         for item in self.book.get_items():
             # 获取文档名称
-            file_id = item.get_id()
-            if file_id == 'ncx':
+            file_id = item.get_id().lower()
+            file_name = item.get_name().lower()
+            file_type = item.get_type()
+            #if file_type == ebooklib.ITEM_NAVIGATION:
+                #print(f" toc item: {file_id, file_name}")
+            #if file_type == ebooklib.ITEM_DOCUMENT:
+                #print(f"item properties: {file_id, item.properties}")
+                #print(f" toc item in opf: {file_id, file_name}")
+            if file_id == 'ncx' or file_name.endswith("ncx"):
                 soup = BeautifulSoup(item.get_content(), 'xml')
+                #print(f"soup: {soup}")
                 root = soup.find("navMap")
                 self.toc = self.build_toc_ver2(root, -1, "")
                 #print(f"toc2 tree: {self.toc}")
                 break
-            elif file_id == "nav":
+            elif file_type == ebooklib.ITEM_DOCUMENT and "nav" in item.properties:
                 soup = BeautifulSoup(item.get_content(), 'xml')
                 root = soup.find("nav")
                 self.toc = self.build_toc_ver3(root, 0, "")

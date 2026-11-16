@@ -248,12 +248,12 @@ class MainWindow(QMainWindow):
             self.bridge.clear_label_sets()
             if self.active_chapter['href']:
                 self.scroll_to_text(self.active_chapter['href'])
-            js = self.js_walkercode + f"\ninitWebChannel();\ninitEventListeners();"
+            js = self.js_walkercode + f"\ninitWebChannel();\ninitEventListeners();\ninitNodeVariables();\ninitSentenceVariables()"
             self.active_chapter['view'].page().runJavaScript(js)
             if self.playing:
-                js_code = self.js_walkercode + "\nretrieveFirstSentence();"
-                self.active_chapter['view'].page().runJavaScript(js_code, self.retrieve_sentence)
                 self.first_entry = False
+                js = self.js_walkercode + f"\nretrieveFirstSentence();"
+                self.active_chapter['view'].page().runJavaScript(js, self.retrieve_sentence)
         else:
             print("loading page failure.")
 

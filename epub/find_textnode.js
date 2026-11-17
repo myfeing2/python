@@ -14,14 +14,38 @@ function isMouseOnScrollbar(e, element) {
 }
 
 function initEventListeners() {
-    document.addEventListener('mouseup', function (event) {
-        selection = window.getSelection();
+    document.addEventListener('mousedown', function(event){
+        window.press_mousedown = false
+        window.is_mousemoving = false
         if (isMouseOnScrollbar(event, event.target)) {
             //console.log('点在滚动条上');
             return
         } else {
             //console.log('点在元素内容上');
+            window.press_mousedown = true
         }
+    })
+    document.addEventListener("mousemove", function(event){
+        window.is_mousemoving = false
+        if (isMouseOnScrollbar(event, event.target)) {
+            //console.log('点在滚动条上');
+            return
+        } else {
+            //console.log('点在元素内容上');
+            window.is_mousemoving = true
+        }
+    })
+    document.addEventListener('mouseup', function (event) {
+        if (isMouseOnScrollbar(event, event.target)) {
+            //console.log('点在滚动条上');
+            return
+        } else {
+            //console.log('点在元素内容上');
+            if (!window.press_mousedown || !window.is_mousemoving)
+                return
+        }
+        
+        selection = window.getSelection();
         if (selection.rangeCount > 0) {
             const selRange = selection.getRangeAt(0);
             const startnode = selection.getRangeAt(0).startContainer;
